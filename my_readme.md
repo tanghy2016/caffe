@@ -133,8 +133,14 @@ layer {
 - for gt class: $f(m, \theta_{gt}) = cos(m_1 \theta_{gt} + m_3) - m_2$
     - if $f(m, \theta_{gt}) = cos(\theta_{gt})$, then back to SV-Softmax
 - for other class:
-    - when $f(m, \theta_{gt}) < cos(\theta_{other})$, then $t cos(\theta_{other}) + t - 1$
-    - other, $cos(\theta)$
+
+$$
+\left\{\begin{matrix} 
+t cos(\theta_{other}) + t - 1 & f(m, \theta_{gt}) < cos(\theta_{other})\\ 
+cos(\theta) & other
+\end{matrix}\right.
+$$
+
 - param
     - m1: default = 1.0
         - don't code it
