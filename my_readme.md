@@ -2,6 +2,32 @@
 
 @tanghy2016
 
+## tools
+
+### create_prototxt.py
+
+- support layer
+    - data_layer
+        - deploy_data
+        - image_data
+    - Convolution
+    - DepthwiseConvolution
+    - Pooling
+    - InnerProduct
+    - ReLU
+        - ReLU
+        - ReLU6
+        - CReLU
+    - BatchNorm
+    - Scale
+    - Eltwise
+    - SoftmaxWithLoss
+    - Softmax
+    - Accuracy
+- support block
+    - mobilenetv2block
+    - conv_block
+
 ## InnerProductLayer
 
 - add normalize [optional]
