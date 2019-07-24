@@ -66,6 +66,57 @@ layer {
 
 - reference [DepthwiseConvolution][2]
 
+## SV-X-Layer
+
+- example, for AM-based
+
+```
+layer {
+  name: "sv_x"
+  type: "SVX"
+  bottom: "fc6"
+  bottom: "label"
+  top: "fc6_margin"
+  sv_x_param {
+    m1: 1
+    m2: 0.35
+    m3: 0
+    t: 1.2
+  }
+}
+```
+
+- example, for Arc-based
+
+```
+layer {
+  name: "sv_x"
+  type: "SVX"
+  bottom: "fc6"
+  bottom: "label"
+  top: "fc6_margin"
+  sv_x_param {
+    m1: 1
+    m2: 0
+    m3: 0.5
+    t: 1.2
+  }
+}
+```
+
+- for gt class: $f(m, \theta_{gt}) = cos(m_1 \theta_{gt} + m_3) - m_2$
+    - if $f(m, \theta_{gt}) = cos(\theta_{gt})$, then back to SV-Softmax
+- for other class:
+    - when $f(m, \theta_{gt}) < cos(\theta_{other})$, then $t cos(\theta_{other}) + t - 1$
+    - other, $cos(\theta)$
+- param
+    - m1: default = 1.0
+        - don't code it
+    - m2: best when m = 0.35 to m = 0.4 (paper), default = 0.35
+    - m3: default = 0.5
+    - t: > 1, default = 1.2
+
+
 [1]: https://github.com/happynear/caffe-windows/tree/504d8a85f552e988fabff88b026f2c31cb778329
 [2]: https://github.com/yonghenglh6/DepthwiseConvolution
 
