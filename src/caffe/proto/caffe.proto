@@ -424,6 +424,7 @@ message LayerParameter {
 
   // add by tanghy, start ID: 300, next available ID: 301
   optional SVXParameter sv_x_param = 300;
+  optional ReLU6Parameter relu6_param = 301;
 }
 
 // Message that stores parameters used to apply transformation
@@ -1457,4 +1458,8 @@ message SVXParameter {
   optional float m2 = 2 [default = 0.5];
   optional float m3 = 3 [default = 0.35];
   optional float t = 4 [default = 1.2];
+}
+
+message ReLU6Parameter {
+  optional float negative_slope = 1 [default = 0];
 }
