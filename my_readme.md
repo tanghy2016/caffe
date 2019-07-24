@@ -132,6 +132,8 @@ layer {
 
 - for gt class: $f(m, \theta_{gt}) = cos(m_1 \theta_{gt} + m_3) - m_2$
     - if $f(m, \theta_{gt}) = cos(\theta_{gt})$, then back to SV-Softmax
+    - AM-based, if $m_1 = 1, m_2 = 0.35, m_3 = 0$
+    - Arc-based, if $m_1 = 1, m_2 = 0, m_3 = 0.5$
 - for other class:
 
 $$
