@@ -1,14 +1,14 @@
 #include <algorithm>
 #include <vector>
 #include <math.h>
-#include "caffe/layers/sv_x_softmax.hpp"
+#include "caffe/layers/sv_x_layer.hpp"
 
 namespace caffe {
 
   template <typename Dtype>
   void SVXLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
                                                     const vector<Blob<Dtype>*>& top) {
-    const SVXParameter& param = this->layer_param_.cosin_add_m_param();
+    const SVXParameter& param = this->layer_param_.sv_x_param();
     m1_ = param.m1();
     m2_ = param.m2();
     m3_ = param.m3();
@@ -59,7 +59,7 @@ namespace caffe {
       // cos(theta + m3) - m2
       top_data[i * dim + gt] = cos_t[i * dim + gt] * cos_m - sin_theta * sin_m - m2_;
 
-      for (j = 0; j < dim; j++)
+      for (int j = 0; j < dim; j++)
       {
         if(j == gt) continue;
         if ( top_data[i * dim + j] > top_data[i * dim + gt] ) {
@@ -104,7 +104,7 @@ namespace caffe {
 
         bottom_diff[i * dim + gt] = coffe * top_diff[i * dim + gt];
 
-        for (j = 0; j < dim; j++)
+        for (int j = 0; j < dim; j++)
         {
           if(j == gt) continue;
           if ( tpflag[i * dim + j] == 2.0f) {
