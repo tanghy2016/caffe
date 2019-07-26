@@ -200,6 +200,23 @@ layer {
 
 - reference [PFLD][4]
 
+## NormalizeLayer
+
+- L2 or L1
+- example
+
+```
+layer {
+  name: "norm1"
+  type: "Normalize"
+  bottom: "fc5"
+  top: "norm1"
+  normalize_param {
+    normalize_type: "L2"
+  }
+}
+```
+
 [1]: https://github.com/happynear/caffe-windows/tree/504d8a85f552e988fabff88b026f2c31cb778329
 [2]: https://github.com/yonghenglh6/DepthwiseConvolution
 [3]: https://128.84.21.199/abs/1812.11317
