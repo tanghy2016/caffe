@@ -422,9 +422,10 @@ message LayerParameter {
   optional TileParameter tile_param = 138;
   optional WindowDataParameter window_data_param = 129;
 
-  // add by tanghy, start ID: 300, next available ID: 301
+  // add by tanghy, start ID: 300, next available ID: 303
   optional SVXParameter sv_x_param = 300;
   optional ReLU6Parameter relu6_param = 301;
+  optional PFLDLossParameter pfld_param = 302;
 }
 
 // Message that stores parameters used to apply transformation
@@ -1462,4 +1463,13 @@ message SVXParameter {
 
 message ReLU6Parameter {
   optional float negative_slope = 1 [default = 0];
+}
+
+message PFLDLossParameter {
+  optional float profile_face = 1 [default = 1];
+  optional float frontal_face = 2 [default = 1];
+  optional float head_up = 3 [default = 1];
+  optional float head_down = 4 [default = 1];
+  optional float expression = 5 [default = 1];
+  optional float occlusion = 6 [default = 1];
 }

@@ -2,6 +2,12 @@
 
 @tanghy2016
 
+------
+
+[toc]
+
+------
+
 ## tools
 
 ### create_prototxt.py
@@ -49,6 +55,7 @@ layer {
 - add input layer [optional]
     - weight layer
     - bias layer
+    
     
     ```
     layer {
@@ -150,6 +157,21 @@ $$
     - m3: default = 0.5
     - t: > 1, default = 1.2
 
+
+## ReLU6
+
+- example
+
+```
+layer {
+  name: "relu1"
+  type: "ReLU6"
+  bottom: "conv1"
+  top: "conv2"
+}
+```
+
+- $y = min(max(0, x), 6)$
 
 [1]: https://github.com/happynear/caffe-windows/tree/504d8a85f552e988fabff88b026f2c31cb778329
 [2]: https://github.com/yonghenglh6/DepthwiseConvolution
