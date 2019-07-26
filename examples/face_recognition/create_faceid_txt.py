@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+from random import shuffle
 
 
 def read_file_name(dir_path):
@@ -30,8 +31,8 @@ def read_dir(dir_root):
     return dir_name
 
 
-def create_txt(dir_root):
-    faceid_list_str = ""
+def get_all_data(dir_root, is_shuffle=True):
+    faceid_list = []
     dir_list = read_dir(dir_root)
     count_dir = 0
     count_img = 0
@@ -39,23 +40,40 @@ def create_txt(dir_root):
         path_ = os.path.join(dir_root, item)
         img_list = read_file_name(path_)
         for img_name in img_list:
-            faceid_list_str += os.path.join(path_, img_name) + " " + item + "\n"
+            faceid_list.append([os.path.join(path_, img_name), item])
             count_img += 1
-            if count_img % 1000 == 0:
+            if count_img % 10000 == 0:
                 print("get %d images..." % count_img)
         count_dir += 1
-        if count_dir % 500 == 0:
+        if count_dir % 1000 == 0:
             print("finished %d/%d" % (count_dir, len(dir_list)))
     print("create txt done! %d dirs, %d images" % (count_dir, count_img))
-    return faceid_list_str
+    if is_shuffle:
+        print("shuffle data...")
+        shuffle(faceid_list)
+    return faceid_list
+
+
+def list2str(faceid_list):
+    temp_list = [None]*len(faceid_list)
+    for i in range(len(faceid_list)):
+        temp_list[i] = ' '.join(faceid_list[i])
+    faceid_str = '\n'.join(temp_list)
+    return faceid_str
 
 
 def main():
     face_root_dir = "/home/ubuntu/disk_d/tanghy/face/imgs"
-    faceid_txt_path = "./faceid_list.txt"
-    faceid_str = create_txt(face_root_dir)
-    with open(faceid_txt_path, "w") as fp:
-        fp.write(faceid_str)
+    train_faceid_txt_path = "./train_faceid_list.txt"
+    test_faceid_txt_path = "./test_faceid_list.txt"
+    faceid_list = get_all_data(face_root_dir, is_shuffle=True)
+    split_ = 10000
+    train_str = list2str(faceid_list[:-split_])
+    test_str = list2str(faceid_list[-split_:])
+    with open(train_faceid_txt_path, "w") as fp:
+        fp.write(train_str)
+    with open(test_faceid_txt_path, "w") as fp:
+        fp.write(test_str)
 
 
 if __name__ == '__main__':
