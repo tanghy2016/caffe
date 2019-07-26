@@ -188,11 +188,11 @@ layer {
   bottom: "classes"
   top: "pfld/loss"
   pfld_loss_param {
-    profile_face: 1
-    frontal_face: 1
-    head_up: 1
-    head_down: 1
-    expression: 1
+    profile_face: 21.3653
+    frontal_face: 1.0171
+    head_up: 14.9402
+    head_down: 2.5726
+    expression: 6.9673
     occlusion: 1
   }
 }
@@ -204,6 +204,4 @@ layer {
 [2]: https://github.com/yonghenglh6/DepthwiseConvolution
 [3]: https://128.84.21.199/abs/1812.11317
 [4]: https://128.84.21.199/abs/1902.10859
-
-
 
