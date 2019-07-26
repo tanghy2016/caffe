@@ -1456,8 +1456,8 @@ message PReLUParameter {
 
 message SVXParameter {
   optional float m1 = 1 [default = 1];
-  optional float m2 = 2 [default = 0.5];
-  optional float m3 = 3 [default = 0.35];
+  optional float m2 = 2 [default = 0.35];
+  optional float m3 = 3 [default = 0.5];
   optional float t = 4 [default = 1.2];
 }
 
