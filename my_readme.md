@@ -203,6 +203,9 @@ layer {
 ## NormalizeLayer
 
 - L2 or L1
+    - Normalize by channel
+    - for fc layer, channel is num_output and spatial_dim is 1
+    - for conv layer, spatial_dim is weight*height
 - example
 
 ```
