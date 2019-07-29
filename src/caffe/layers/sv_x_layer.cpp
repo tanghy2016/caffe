@@ -56,8 +56,13 @@ namespace caffe {
         sin_theta = 0.0f;
       }
 
-      // cos(theta + m3) - m2
-      top_data[i * dim + gt] = cos_t[i * dim + gt] * cos_m - sin_theta * sin_m - m2_;
+      if(cos_t[i * dim + gt] <= threshold) {
+        top_data[i * dim + gt] = cos_t[i * dim + gt] - sin(M_PI - m3_) * m3_;
+        tpflag[i * dim + gt] = 1.0f;
+      } else {
+        // cos(theta + m3) - m2
+        top_data[i * dim + gt] = cos_t[i * dim + gt] * cos_m - sin_theta * sin_m - m2_;
+      }
 
       for (int j = 0; j < dim; j++)
       {
@@ -101,6 +106,9 @@ namespace caffe {
           coffe = cos_m;
         else
           coffe = cos_m + sin_m * cos_t[i * dim + gt] / sin_theta;
+
+        if(abs(tpflag[i * dim + gt] - 1.0f) < 0.00001)
+          coffe = 1.0f;
 
         bottom_diff[i * dim + gt] = coffe * top_diff[i * dim + gt];
 
