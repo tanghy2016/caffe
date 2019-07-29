@@ -47,8 +47,6 @@ void AddMarginLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     int gt = static_cast<int>(label_data[i]);
     if(gt < 0) continue;
 
-    bi_data[i * dim + gt] = 0.f;
-
     Dtype cos_theta_2 = cos_t[i * dim + gt] * cos_t[i * dim + gt];
     Dtype sin_theta = sqrt(1.0f - cos_theta_2);
     if(cos_t[i * dim + gt] > 1.0f)
