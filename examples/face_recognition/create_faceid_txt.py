@@ -99,8 +99,8 @@ def main():
     with open(test_faceid_txt_path, "w") as fp:
         fp.write(test_str)
 
-    train_small_faceid_txt_path = "./train_faceid_list.txt"
-    test_small_faceid_txt_path = "./test_faceid_list.txt"
+    train_small_faceid_txt_path = "./train_small_faceid_list.txt"
+    test_small_faceid_txt_path = "./test_small_faceid_list.txt"
     faceid_list_small = get_small_data(face_root_dir, num=100, is_shuffle=True)
     split_small = 500
     train_str = list2str(faceid_list_small[:-split_small])
