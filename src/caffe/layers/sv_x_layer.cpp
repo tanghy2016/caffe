@@ -91,13 +91,13 @@ namespace caffe {
         int gt = static_cast<int>(label_data[i]);
         if(gt < 0) continue;
         Dtype cos_theta_2 = cos_t[i * dim + gt] * cos_t[i * dim + gt];
-        if(cos_t[i * dim + gt] == 1.0f)
+        if(abs(cos_t[i * dim + gt] - 1.0f) < 0.00001)
         {
           cos_theta_2 = 1.0f;
         }
         Dtype sin_theta = sqrt(1.0f - cos_theta_2);
         Dtype coffe = 0.0f;
-        if(sin_theta == 0.0f)
+        if(abs(sin_theta) < 0.00001)
           coffe = cos_m;
         else
           coffe = cos_m + sin_m * cos_t[i * dim + gt] / sin_theta;
@@ -107,11 +107,10 @@ namespace caffe {
         for (int j = 0; j < dim; j++)
         {
           if(j == gt) continue;
-          if ( tpflag[i * dim + j] == 2.0f) {
-            bottom_diff[i * dim + j] = bottom_diff[i * dim + j] * t_;
+          if (abs(tpflag[i * dim + j] - 2.0f) < 0.00001) {
+            bottom_diff[i * dim + j] = top_diff[i * dim + j] * t_;
           }
         }
-
       }
     }
   }
