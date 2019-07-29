@@ -54,6 +54,30 @@ def get_all_data(dir_root, is_shuffle=True):
     return faceid_list
 
 
+def get_small_data(dir_root, num=100, is_shuffle=True):
+    faceid_list = []
+    dir_list = read_dir(dir_root)
+    dir_list = [int(item) for item in dir_list]
+    dir_list = sorted(dir_list)[:num]
+    dir_list = [str(item) for item in dir_list]
+    count_dir = 0
+    count_img = 0
+    for item in dir_list:
+        path_ = os.path.join(dir_root, item)
+        img_list = read_file_name(path_)
+        for img_name in img_list:
+            faceid_list.append([os.path.join(path_, img_name), item])
+            count_img += 1
+            if count_img % 1000 == 0:
+                print("get %d images..." % count_img)
+        count_dir += 1
+    print("create txt done! %d dirs, %d images" % (count_dir, count_img))
+    if is_shuffle:
+        print("shuffle data...")
+        shuffle(faceid_list)
+    return faceid_list
+
+
 def list2str(faceid_list):
     temp_list = [None]*len(faceid_list)
     for i in range(len(faceid_list)):
@@ -73,6 +97,17 @@ def main():
     with open(train_faceid_txt_path, "w") as fp:
         fp.write(train_str)
     with open(test_faceid_txt_path, "w") as fp:
+        fp.write(test_str)
+
+    train_small_faceid_txt_path = "./train_faceid_list.txt"
+    test_small_faceid_txt_path = "./test_faceid_list.txt"
+    faceid_list_small = get_small_data(face_root_dir, num=100, is_shuffle=True)
+    split_small = 500
+    train_str = list2str(faceid_list_small[:-split_small])
+    test_str = list2str(faceid_list_small[-split_small:])
+    with open(train_small_faceid_txt_path, "w") as fp:
+        fp.write(train_str)
+    with open(test_small_faceid_txt_path, "w") as fp:
         fp.write(test_str)
 
 
