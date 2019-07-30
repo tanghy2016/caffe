@@ -240,8 +240,27 @@ layer {
 }
 ```
 
+## ShuffleChannelLayer
+
+- example
+
+```
+layer {
+  name: "shuffle2"
+  type: "ShuffleChannel"
+  bottom: "resx2_conv1"
+  top: "shuffle2"
+  shuffle_channel_param {
+    group: 3
+  }
+}
+```
+
+- the num output in bottom layer of ```ShuffleChannel``` should be divisible by param-group
+- reference [ShuffleNet][5]
+
 [1]: https://github.com/happynear/caffe-windows/tree/504d8a85f552e988fabff88b026f2c31cb778329
 [2]: https://github.com/yonghenglh6/DepthwiseConvolution
 [3]: https://128.84.21.199/abs/1812.11317
 [4]: https://128.84.21.199/abs/1902.10859
-
+[5]: https://github.com/farmingyard/ShuffleNet
