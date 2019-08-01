@@ -924,7 +924,7 @@ def shuffle_facenet_backbone(train=True):
                                       c_w_decay_mult=10, weight_filler="msra")
     net += temp_layer + "\n"
     # input: 512*1, output: 128
-    temp_layer, top_name = fc("fc5", top_name, 128, top=None, bias_term=False, w_decay_mult=10,
+    temp_layer, top_name = fc("fc5", top_name, 128, top=None, bias_term=False, w_decay_mult=1,
                               weight_filler="msra", normalize=False)
     net += temp_layer + "\n"
     return net, top_name
@@ -944,7 +944,7 @@ def shuffle_facenet(source_train, source_test, class_num, type_margin):
     # type_margin = "sv-x"
 
     temp_layer, top_name = image_data(source_train, 112, 112, name="data", top=["data", "label"],
-                                      batch_size=64, root_folder="",
+                                      batch_size=128, root_folder="",
                                       crop_size=0, mirror=True, mean_file="", mean_value=[128], scale=0.0078125,
                                       is_color=True, shuffle=True, phase="TRAIN")
     net_train += temp_layer + "\n"
@@ -964,8 +964,8 @@ def shuffle_facenet(source_train, source_test, class_num, type_margin):
     temp_layer, top_name = normalize("norm1", top_name_train_val, top=None)
     net_train += temp_layer + "\n"
     net_val += temp_layer + "\n"
-    temp_layer, top_name = fc("fc6_l2", top_name, class_num, top=None, bias_term=True,
-                              w_decay_mult=10, weight_filler="msra", normalize=True)
+    temp_layer, top_name = fc("fc6_l2", top_name, class_num, top=None, bias_term=False,
+                              w_decay_mult=1, weight_filler="msra", normalize=True)
     net_train += temp_layer + "\n"
     net_val += temp_layer + "\n"
 
@@ -991,6 +991,7 @@ def shuffle_facenet(source_train, source_test, class_num, type_margin):
 
     temp_layer, _ = softmax_with_loss("loss", [top_name, "label"])
     net_train += temp_layer + "\n"
+    net_val += temp_layer + "\n"
 
     temp_layer, _ = accuracy("accuracy", [top_name, "label"])
     net_val += temp_layer + "\n"
