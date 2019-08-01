@@ -25,7 +25,7 @@ def read_dir(dir_root):
             except Exception as _:
                 print("%s not a number" % item)
         count += 1
-        if count % 500 == 0:
+        if count % 2000 == 0:
             print("finished %d/%d" % (count, len(name_list)))
     print("read dir done! %d dirs" % count)
     return dir_name
@@ -42,10 +42,10 @@ def get_all_data(dir_root, is_shuffle=True):
         for img_name in img_list:
             faceid_list.append([os.path.join(path_, img_name), item])
             count_img += 1
-            if count_img % 10000 == 0:
-                print("get %d images..." % count_img)
+            if count_img % 50000 == 0:
+                print("\tget %d images..." % count_img)
         count_dir += 1
-        if count_dir % 1000 == 0:
+        if count_dir % 5000 == 0:
             print("finished %d/%d" % (count_dir, len(dir_list)))
     print("create txt done! %d dirs, %d images" % (count_dir, count_img))
     if is_shuffle:
