@@ -47,7 +47,7 @@ def image_data(source, new_height, new_width, name="data", top=["data", "label"]
             for value in mean_value:
                 layer += "    mean_value: " + str(value) + "\n"
         if scale > 0:
-            layer += "    scale: \"" + str(scale) + "\"\n"
+            layer += "    scale: " + str(scale) + "\n"
         layer += "  }\n"
     layer += "  image_data_param {\n"
     layer += "    source: \"" + source + "\"\n"
@@ -306,7 +306,7 @@ def scale(name, bottom, top, type_s=None, w_value=1, w_lr_mult=1, w_decay_mult=1
     layer += "  scale_param {\n"
     layer += "    filler {\n"
     if type_s == "constant":
-        layer += "      type: " + type_s + "\n"
+        layer += "      type: \"" + type_s + "\"\n"
     layer += "      value: " + str(w_value) + "\n"
     layer += "    }\n"
     if bias_term:
@@ -617,13 +617,13 @@ def sv_x(name, bottom, top=None, m1=1, m2=0.35, m3=0.5, t=1.2):
     layer += "  top: \"" + top + "\"\n"
     layer += "  sv_x_param: {\n"
     if abs(m1 - 1) > 0.00001:
-        layer += "  m1: " + str(m1) + "\n"
+        layer += "    m1: " + str(m1) + "\n"
     if abs(m2 - 0.35) > 0.00001:
-        layer += "  m2: " + str(m2) + "\n"
+        layer += "    m2: " + str(m2) + "\n"
     if abs(m3 - 0.5) > 0.00001:
-        layer += "  m3: " + str(m3) + "\n"
+        layer += "    m3: " + str(m3) + "\n"
     if abs(t - 1.2) > 0.00001:
-        layer += "  t: " + str(t) + "\n"
+        layer += "    t: " + str(t) + "\n"
     layer += "  }\n"
     layer += "}"
     return layer, top
@@ -642,11 +642,11 @@ def add_margin(name, bottom, top=None, m1=1, m2=0.35, m3=0.5, t=1.2):
     layer += "  top: \"" + top + "\"\n"
     layer += "  add_margin_param: {\n"
     if abs(m1 - 1) > 0.00001:
-        layer += "  m1: " + str(m1) + "\n"
+        layer += "    m1: " + str(m1) + "\n"
     if abs(m2 - 0.35) > 0.00001:
-        layer += "  m2: " + str(m2) + "\n"
+        layer += "    m2: " + str(m2) + "\n"
     if abs(m3 - 0.5) > 0.00001:
-        layer += "  m3: " + str(m3) + "\n"
+        layer += "    m3: " + str(m3) + "\n"
     layer += "  }\n"
     layer += "}"
     return layer, top
