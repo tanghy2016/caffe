@@ -261,7 +261,7 @@ layer {
 
 ## SSD Layers
 
-- 参考[caffe-ssd]
+- 参考[caffe-ssd][6]
 - ```util/bbox_util```
 - ```util/sampler```
 - ```util/im_transforms```
@@ -569,3 +569,6 @@ optional EmitConstraint emit_constraint = 10;
 [3]: https://128.84.21.199/abs/1812.11317
 [4]: https://128.84.21.199/abs/1902.10859
 [5]: https://github.com/farmingyard/ShuffleNet
+[6]: https://github.com/weiliu89/caffe/tree/ssd
+
+
