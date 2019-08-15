@@ -931,9 +931,9 @@ def shuffle_facenet_backbone(train=True):
 
 
 def shuffle_facenet(source_train, source_test, class_num, type_margin):
-    net_train = "name: \"EYENet\"\n"
-    net_val = "name: \"EYENet\"\n"
-    net_deploy = "name: \"EYENet\"\n"
+    net_train = "name: \"ShuffleV2FaceNet\"\n"
+    net_val = "name: \"ShuffleV2FaceNet\"\n"
+    net_deploy = "name: \"ShuffleV2FaceNet\"\n"
 
     temp_layer_deploy, top_name_deploy = deploy_data(shape=[1, 3, 112, 112])
     net_deploy += temp_layer_deploy + "\n"
@@ -944,7 +944,7 @@ def shuffle_facenet(source_train, source_test, class_num, type_margin):
     # type_margin = "sv-x"
 
     temp_layer, top_name = image_data(source_train, 112, 112, name="data", top=["data", "label"],
-                                      batch_size=128, root_folder="",
+                                      batch_size=64, root_folder="",
                                       crop_size=0, mirror=True, mean_file="", mean_value=[128], scale=0.0078125,
                                       is_color=True, shuffle=True, phase="TRAIN")
     net_train += temp_layer + "\n"
@@ -969,6 +969,9 @@ def shuffle_facenet(source_train, source_test, class_num, type_margin):
     net_train += temp_layer + "\n"
     net_val += temp_layer + "\n"
 
+    temp_layer, _ = accuracy("accuracy", [top_name, "label"])
+    net_val += temp_layer + "\n"
+
     if type_margin == "sv-x":
         temp_layer, top_name = sv_x(type_margin, [top_name, "label"], top="fc6_margin", m1=1, m2=0, m3=0.5, t=1.2)
     elif type_margin == "softmax":
@@ -991,9 +994,6 @@ def shuffle_facenet(source_train, source_test, class_num, type_margin):
 
     temp_layer, _ = softmax_with_loss("loss", [top_name, "label"])
     net_train += temp_layer + "\n"
-    net_val += temp_layer + "\n"
-
-    temp_layer, _ = accuracy("accuracy", [top_name, "label"])
     net_val += temp_layer + "\n"
 
     return net_train, net_val, net_deploy

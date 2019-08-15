@@ -259,6 +259,44 @@ layer {
 - the num output in bottom layer of ```ShuffleChannel``` should be divisible by param-group
 - reference [ShuffleNet][5]
 
+## SSD Layers
+
+- 参考[caffe-ssd]
+- ```util/bbox_util```
+- ```util/sampler```
+- ```util/im_transforms```
+- ```util/io```
+
+### AnnotatedDataLayer
+### PermuteLayer
+### PriorBoxLayer
+### DetectionOutputLayer
+### DetectionEvaluateLayer
+### MultiBoxLossLayer
+### caffe.proto
+
+- 增加```TransformationParameter```参数
+
+```
+optional uint32 crop_h = 11 [default = 0];
+optional uint32 crop_w = 12 [default = 0];
+
+// Resize policy
+optional ResizeParameter resize_param = 8;
+// Noise policy
+optional NoiseParameter noise_param = 9;
+// Distortion policy
+optional DistortionParameter distort_param = 13;
+// Expand policy
+optional ExpansionParameter expand_param = 14;
+// Constraint for emitting the annotation after transformation.
+optional EmitConstraint emit_constraint = 10;
+```
+
+### base_data_layer
+
+
+
 [1]: https://github.com/happynear/caffe-windows/tree/504d8a85f552e988fabff88b026f2c31cb778329
 [2]: https://github.com/yonghenglh6/DepthwiseConvolution
 [3]: https://128.84.21.199/abs/1812.11317
