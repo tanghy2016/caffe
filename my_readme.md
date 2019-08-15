@@ -266,13 +266,280 @@ layer {
 - ```util/sampler```
 - ```util/im_transforms```
 - ```util/io```
+- 以及一些其他修改, 具体参考```SSD的提交```
 
 ### AnnotatedDataLayer
+
+```
+layer {
+  name: "data"
+  type: "AnnotatedData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    scale: 0.007843
+    mirror: true
+    mean_value: 127.5
+    mean_value: 127.5
+    mean_value: 127.5
+    resize_param {
+      prob: 1.0
+      resize_mode: WARP
+      height: 300
+      width: 300
+      interp_mode: LINEAR
+      interp_mode: AREA
+      interp_mode: NEAREST
+      interp_mode: CUBIC
+      interp_mode: LANCZOS4
+    }
+    emit_constraint {
+      emit_type: CENTER
+    }
+    distort_param {
+      brightness_prob: 0.5
+      brightness_delta: 32.0
+      contrast_prob: 0.5
+      contrast_lower: 0.5
+      contrast_upper: 1.5
+      hue_prob: 0.5
+      hue_delta: 18.0
+      saturation_prob: 0.5
+      saturation_lower: 0.5
+      saturation_upper: 1.5
+      random_order_prob: 0.0
+    }
+    expand_param {
+      prob: 0.5
+      max_expand_ratio: 4.0
+    }
+  }
+  data_param {
+    source: "trainval_lmdb/"
+    batch_size: 24
+    backend: LMDB
+  }
+  annotated_data_param {
+    batch_sampler {
+      max_sample: 1
+      max_trials: 1
+    }
+    batch_sampler {
+      sampler {
+        min_scale: 0.3
+        max_scale: 1.0
+        min_aspect_ratio: 0.5
+        max_aspect_ratio: 2.0
+      }
+      sample_constraint {
+        min_jaccard_overlap: 0.1
+      }
+      max_sample: 1
+      max_trials: 50
+    }
+    batch_sampler {
+      sampler {
+        min_scale: 0.3
+        max_scale: 1.0
+        min_aspect_ratio: 0.5
+        max_aspect_ratio: 2.0
+      }
+      sample_constraint {
+        min_jaccard_overlap: 0.3
+      }
+      max_sample: 1
+      max_trials: 50
+    }
+    batch_sampler {
+      sampler {
+        min_scale: 0.3
+        max_scale: 1.0
+        min_aspect_ratio: 0.5
+        max_aspect_ratio: 2.0
+      }
+      sample_constraint {
+        min_jaccard_overlap: 0.5
+      }
+      max_sample: 1
+      max_trials: 50
+    }
+    batch_sampler {
+      sampler {
+        min_scale: 0.3
+        max_scale: 1.0
+        min_aspect_ratio: 0.5
+        max_aspect_ratio: 2.0
+      }
+      sample_constraint {
+        min_jaccard_overlap: 0.7
+      }
+      max_sample: 1
+      max_trials: 50
+    }
+    batch_sampler {
+      sampler {
+        min_scale: 0.3
+        max_scale: 1.0
+        min_aspect_ratio: 0.5
+        max_aspect_ratio: 2.0
+      }
+      sample_constraint {
+        min_jaccard_overlap: 0.9
+      }
+      max_sample: 1
+      max_trials: 50
+    }
+    batch_sampler {
+      sampler {
+        min_scale: 0.3
+        max_scale: 1.0
+        min_aspect_ratio: 0.5
+        max_aspect_ratio: 2.0
+      }
+      sample_constraint {
+        max_jaccard_overlap: 1.0
+      }
+      max_sample: 1
+      max_trials: 50
+    }
+    label_map_file: "labelmap.prototxt"
+  }
+}
+```
+
 ### PermuteLayer
+
+```
+layer {
+  name: "conv11_mbox_loc_perm"
+  type: "Permute"
+  bottom: "conv11_mbox_loc"
+  top: "conv11_mbox_loc_perm"
+  permute_param {
+    order: 0
+    order: 2
+    order: 3
+    order: 1
+  }
+}
+```
+
 ### PriorBoxLayer
+
+```
+layer {
+  name: "conv11_mbox_priorbox"
+  type: "PriorBox"
+  bottom: "conv11"
+  bottom: "data"
+  top: "conv11_mbox_priorbox"
+  prior_box_param {
+    min_size: 60.0
+    aspect_ratio: 2.0
+    flip: true
+    clip: false
+    variance: 0.1
+    variance: 0.1
+    variance: 0.2
+    variance: 0.2
+    offset: 0.5
+  }
+}
+```
+
 ### DetectionOutputLayer
+
+```
+layer {
+  name: "detection_out"
+  type: "DetectionOutput"
+  bottom: "mbox_loc"
+  bottom: "mbox_conf_flatten"
+  bottom: "mbox_priorbox"
+  top: "detection_out"
+  include {
+    phase: TEST
+  }
+  detection_output_param {
+    num_classes: 21
+    share_location: true
+    background_label_id: 0
+    nms_param {
+      nms_threshold: 0.45
+      top_k: 100
+    }
+    code_type: CENTER_SIZE
+    keep_top_k: 100
+    confidence_threshold: 0.25
+  }
+}
+```
+
 ### DetectionEvaluateLayer
+
+```
+layer {
+  name: "detection_eval"
+  type: "DetectionEvaluate"
+  bottom: "detection_out"
+  bottom: "label"
+  top: "detection_eval"
+  include {
+    phase: TEST
+  }
+  detection_evaluate_param {
+    num_classes: 21
+    background_label_id: 0
+    overlap_threshold: 0.5
+    evaluate_difficult_gt: false
+  }
+}
+```
+
 ### MultiBoxLossLayer
+
+```
+layer {
+  name: "mbox_loss"
+  type: "MultiBoxLoss"
+  bottom: "mbox_loc"
+  bottom: "mbox_conf"
+  bottom: "mbox_priorbox"
+  bottom: "label"
+  top: "mbox_loss"
+  include {
+    phase: TRAIN
+  }
+  propagate_down: true
+  propagate_down: true
+  propagate_down: false
+  propagate_down: false
+  loss_param {
+    normalization: VALID
+  }
+  multibox_loss_param {
+    loc_loss_type: SMOOTH_L1
+    conf_loss_type: SOFTMAX
+    loc_weight: 1.0
+    num_classes: 21
+    share_location: true
+    match_type: PER_PREDICTION
+    overlap_threshold: 0.5
+    use_prior_for_matching: true
+    background_label_id: 0
+    use_difficult_gt: true
+    neg_pos_ratio: 3.0
+    neg_overlap: 0.5
+    code_type: CENTER_SIZE
+    ignore_cross_boundary_bbox: false
+    mining_type: MAX_NEGATIVE
+  }
+}
+```
+
 ### caffe.proto
 
 - 增加```TransformationParameter```参数
@@ -293,7 +560,7 @@ optional ExpansionParameter expand_param = 14;
 optional EmitConstraint emit_constraint = 10;
 ```
 
-### base_data_layer
+- 增加```SolverParameter```参数
 
 
 
