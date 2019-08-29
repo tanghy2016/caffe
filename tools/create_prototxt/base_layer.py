@@ -432,8 +432,39 @@ def add_margin(name, bottom, top=None, m1=1, m2=0.35, m3=0.5):
     return layer, top
 
 
-def detection_output():
-    pass
+def detection_output(name, bottom, top=None, num_classes=2, share_location=True, background_label_id=0,
+                     nms_threshold=0.45, top_k=400,
+                     code_type="CENTER_SIZE", keep_top_k=200, confidence_threshold=0.01):
+    if not top:
+        top = name
+    if not isinstance(bottom, list):
+        raise Exception("bottom must be list")
+    layer = "layer {\n"
+    layer += "  name: \"" + name + "\"\n"
+    layer += "  type: \"DetectionOutput\"\n"
+    for bottom_name in bottom:
+        layer += "  bottom: \"" + bottom_name + "\"\n"
+    layer += "  top: \"" + top + "\"\n"
+    layer += "  include: {\n"
+    layer += "    phase: TEST\n"
+    layer += "  }\n"
+    layer += "  detection_output_param: {\n"
+    layer += "    num_classes: " + str(num_classes) + "\n"
+    if share_location:
+        layer += "    share_location: True\n"
+    else:
+        layer += "    share_location: False\n"
+    layer += "    background_label_id: " + str(background_label_id) + "\n"
+    layer += "    nms_param: {\n"
+    layer += "      nms_threshold: " + str(nms_threshold) + "\n"
+    layer += "      top_k: " + str(top_k) + "\n"
+    layer += "    }\n"
+    layer += "    code_type: " + code_type + "\n"
+    layer += "    keep_top_k: " + str(keep_top_k) + "\n"
+    layer += "    confidence_threshold: " + str(confidence_threshold) + "\n"
+    layer += "  }\n"
+    layer += "}"
+    return layer, top
 
 
 def test_layer():
@@ -445,6 +476,7 @@ def test_layer():
     print(scale("scale1", "conv1", "conv1", bias_term=True)[0])
     print(eltwise("add1", ["conv1", "conv2"], top=None)[0])
     print(slice("slice1", "conv1", ["conv1_1", "conv1_2"], 58, axis=1)[0])
+    print(detection_output("detection_out", ["mbox_loc", "mbox_conf_flatten", "mbox_priorbox"], num_classes=2)[0])
 
 
 if __name__ == '__main__':
