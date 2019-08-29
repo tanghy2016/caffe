@@ -451,9 +451,9 @@ def detection_output(name, bottom, top=None, num_classes=2, share_location=True,
     layer += "  detection_output_param: {\n"
     layer += "    num_classes: " + str(num_classes) + "\n"
     if share_location:
-        layer += "    share_location: True\n"
+        layer += "    share_location: true\n"
     else:
-        layer += "    share_location: False\n"
+        layer += "    share_location: false\n"
     layer += "    background_label_id: " + str(background_label_id) + "\n"
     layer += "    nms_param: {\n"
     layer += "      nms_threshold: " + str(nms_threshold) + "\n"
