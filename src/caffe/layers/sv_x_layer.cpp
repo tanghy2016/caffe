@@ -57,7 +57,7 @@ namespace caffe {
       }
 
       if(cos_t[i * dim + gt] <= threshold) {
-        top_data[i * dim + gt] = cos_t[i * dim + gt] - sin(M_PI - m3_) * m3_;
+        top_data[i * dim + gt] = cos_t[i * dim + gt]  // - sin(M_PI - m3_) * m3_;
         tpflag[i * dim + gt] = 1.0f;
       } else {
         // cos(theta + m3) - m2
