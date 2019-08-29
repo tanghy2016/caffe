@@ -434,7 +434,8 @@ def add_margin(name, bottom, top=None, m1=1, m2=0.35, m3=0.5):
 
 def detection_output(name, bottom, top=None, num_classes=2, share_location=True, background_label_id=0,
                      nms_threshold=0.45, top_k=400,
-                     code_type="CENTER_SIZE", keep_top_k=200, confidence_threshold=0.01):
+                     code_type="CENTER_SIZE", keep_top_k=200, confidence_threshold=0.01,
+                     val_parm=None):
     if not top:
         top = name
     if not isinstance(bottom, list):
@@ -459,6 +460,15 @@ def detection_output(name, bottom, top=None, num_classes=2, share_location=True,
     layer += "      nms_threshold: " + str(nms_threshold) + "\n"
     layer += "      top_k: " + str(top_k) + "\n"
     layer += "    }\n"
+    if val_parm:
+        layer += "    save_output_param: {\n"
+        layer += "      output_directory: \"" + val_parm.output_directory + "\"\n"
+        layer += "      output_name_prefix: \"" + val_parm.output_name_prefix + "\"\n"
+        layer += "      output_format: \"" + val_parm.output_format + "\"\n"
+        layer += "      label_map_file: \"" + val_parm.label_map_file + "\"\n"
+        layer += "      name_size_file: \"" + val_parm.name_size_file + "\"\n"
+        layer += "      num_test_image: " + str(val_parm.num_test_image) + "\n"
+        layer += "    }\n"
     layer += "    code_type: " + code_type + "\n"
     layer += "    keep_top_k: " + str(keep_top_k) + "\n"
     layer += "    confidence_threshold: " + str(confidence_threshold) + "\n"
@@ -469,14 +479,25 @@ def detection_output(name, bottom, top=None, num_classes=2, share_location=True,
 
 def test_layer():
     print(conv("conv1", "data", 32, 3, top=None, bias_term=True, pad=0, stride=1, group=1, weight_filler="msra")[0])
-    print(dwconv("conv1", "data", 32, 3, top=None, bias_term=True, pad=0, stride=1, group=None, weight_filler="msra")[0])
+    print(
+        dwconv("conv1", "data", 32, 3, top=None, bias_term=True, pad=0, stride=1, group=None, weight_filler="msra")[0])
     print(pool("pool1", "conv1", 3, pool="MAX", global_pooling=False)[0])
     print(fc("fc1", "conv1", 136, bias_term=True, weight_filler="gaussian")[0])
     print(bn("bn1", "conv1", "conv1")[0])
     print(scale("scale1", "conv1", "conv1", bias_term=True)[0])
     print(eltwise("add1", ["conv1", "conv2"], top=None)[0])
     print(slice("slice1", "conv1", ["conv1_1", "conv1_2"], 58, axis=1)[0])
-    print(detection_output("detection_out", ["mbox_loc", "mbox_conf_flatten", "mbox_priorbox"], num_classes=2)[0])
+
+    from easydict import EasyDict
+    val_parm = EasyDict()
+    val_parm.output_directory = "/home-2/wliu/data/VOCdevkit/results/VOC2007/SSD_300x300/Main"
+    val_parm.output_name_prefix = "comp4_det_test_"
+    val_parm.output_format = "VOC"
+    val_parm.label_map_file = "data/VOC0712/labelmap_voc.prototxt"
+    val_parm.name_size_file = "data/VOC0712/test_name_size.txt"
+    val_parm.num_test_image = 4952
+    print(detection_output("detection_out", ["mbox_loc", "mbox_conf_flatten", "mbox_priorbox"], num_classes=21,
+                           val_parm=val_parm)[0])
 
 
 if __name__ == '__main__':
