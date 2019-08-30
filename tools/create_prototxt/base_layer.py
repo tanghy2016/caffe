@@ -318,7 +318,27 @@ def permute(name, bottom, order, top=None):
     layer += "  top: \"" + top + "\"\n"
     layer += "  permute_param {\n"
     for order_item in order:
-        layer += "    order: \"" + str(order_item) + "\"\n"
+        layer += "    order: " + str(order_item) + "\n"
+    layer += "  }\n"
+    layer += "}"
+    return layer, top
+
+
+def reshape(name, bottom, shape, top=None):
+    if not top:
+        top = name
+    if not isinstance(shape, list):
+        raise Exception("bottom must be list")
+    layer = "layer {\n"
+    layer += "  name: \"" + name + "\"\n"
+    layer += "  type: \"Reshape\"\n"
+    layer += "  bottom: \"" + bottom + "\"\n"
+    layer += "  top: \"" + top + "\"\n"
+    layer += "  reshape_param {\n"
+    layer += "    shape {\n"
+    for shape_item in shape:
+        layer += "      dim: " + str(shape_item) + "\n"
+    layer += "    }\n"
     layer += "  }\n"
     layer += "}"
     return layer, top
