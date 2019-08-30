@@ -99,11 +99,49 @@ def my_face_det_net():
     temp_layer, _ = multi_box_loss(name="mbox_loss", bottom=["mbox_loc", "mbox_conf", "mbox_priorbox", "label"],
                                    propagate_down=["true", "true", "false", "false"], num_classes=2)
     net_train += temp_layer + "\n"
-    return net_train
+
+    temp_layer, top_name = reshape("mbox_conf_reshape", "mbox_conf", [0, -1, 21])
+    net_val += temp_layer + "\n"
+    net_deploy += temp_layer + "\n"
+    temp_layer, top_name = softmax("mbox_conf_softmax", top_name, axis=2)
+    net_val += temp_layer + "\n"
+    net_deploy += temp_layer + "\n"
+    temp_layer, top_name = flatten("mbox_conf_flatten", top_name)
+    net_val += temp_layer + "\n"
+    net_deploy += temp_layer + "\n"
+
+    from easydict import EasyDict
+    val_parm = EasyDict()
+    val_parm.output_directory = "/home-2/wliu/data/VOCdevkit/results/VOC2007/SSD_300x300/Main"
+    val_parm.output_name_prefix = "comp4_det_test_"
+    val_parm.output_format = "VOC"
+    val_parm.label_map_file = "data/VOC0712/labelmap_voc.prototxt"
+    val_parm.name_size_file = "data/VOC0712/test_name_size.txt"
+    val_parm.num_test_image = 4952
+    temp_layer, top_layer = detection_output("detection_out", ["mbox_loc", top_name, "mbox_priorbox"],
+                                             num_classes=2, val_parm=val_parm)
+    net_val += temp_layer + "\n"
+    temp_layer, _ = detection_evaluate("detection_eval", [top_layer, "label"], num_classes=2,
+                                       name_size_file="data/VOC0712/test_name_size.txt")
+    net_val += temp_layer + "\n"
+
+    temp_layer, _ = detection_output("detection_out", ["mbox_loc", top_name, "mbox_priorbox"], num_classes=2)
+    net_deploy += temp_layer + "\n"
+
+    return net_train, net_val, net_deploy
 
 
 def main():
-    print(my_face_det_net())
+    train_path = "../../../caffe_model/FaceDet/train.prototxt"
+    val_path = "../../../caffe_model/FaceDet/val.prototxt"
+    deploy_path = "../../../caffe_model/FaceDet/deploy.prototxt"
+    net_train, net_val, net_deploy = my_face_det_net()
+    with open(train_path, "w") as fp:
+        fp.write(net_train)
+    with open(val_path, "w") as fp:
+        fp.write(net_val)
+    with open(deploy_path, "w") as fp:
+        fp.write(net_deploy)
 
 
 if __name__ == '__main__':
