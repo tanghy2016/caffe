@@ -13,7 +13,7 @@ def relu(name, bottom, top, type="ReLU"):
     return layer, top
 
 
-def softmax(name, bottom, top=None):
+def softmax(name, bottom, top=None, axis=-1):
     if not top:
         top = name
     layer = "layer {\n"
@@ -21,6 +21,10 @@ def softmax(name, bottom, top=None):
     layer += "  type: \"Softmax\"\n"
     layer += "  bottom: \"" + bottom + "\"\n"
     layer += "  top: \"" + top + "\"\n"
+    if axis > 0:
+        layer += "  softmax_param {\n"
+        layer += "    axis: " + str(axis) + "\n"
+        layer += "  }\n"
     layer += "}"
     return layer, top
 
