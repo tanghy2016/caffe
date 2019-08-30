@@ -477,6 +477,39 @@ def detection_output(name, bottom, top=None, num_classes=2, share_location=True,
     return layer, top
 
 
+def detection_evaluate(name, bottom, top=None, num_classes=21, background_label_id=0, overlap_threshold=0.5,
+                       evaluate_difficult_gt=False, name_size_file=""):
+    if not top:
+        top = name
+    if not isinstance(bottom, list):
+        raise Exception("bottom must be list")
+    if not top:
+        top = name
+    if not isinstance(bottom, list):
+        raise Exception("bottom must be list")
+    layer = "layer {\n"
+    layer += "  name: \"" + name + "\"\n"
+    layer += "  type: \"DetectionEvaluate\"\n"
+    for bottom_name in bottom:
+        layer += "  bottom: \"" + bottom_name + "\"\n"
+    layer += "  top: \"" + top + "\"\n"
+    layer += "  include: {\n"
+    layer += "    phase: TEST\n"
+    layer += "  }\n"
+    layer += "  detection_evaluate_param: {\n"
+    layer += "    num_classes: " + str(num_classes) + "\n"
+    layer += "    background_label_id: " + str(background_label_id) + "\n"
+    layer += "    overlap_threshold: " + str(overlap_threshold) + "\n"
+    if evaluate_difficult_gt:
+        layer += "    evaluate_difficult_gt: true\n"
+    else:
+        layer += "    evaluate_difficult_gt: false\n"
+    layer += "    name_size_file: \"" + name_size_file + "\"\n"
+    layer += "  }\n"
+    layer += "}"
+    return layer, top
+
+
 def test_layer():
     print(conv("conv1", "data", 32, 3, top=None, bias_term=True, pad=0, stride=1, group=1, weight_filler="msra")[0])
     print(
@@ -498,6 +531,8 @@ def test_layer():
     val_parm.num_test_image = 4952
     print(detection_output("detection_out", ["mbox_loc", "mbox_conf_flatten", "mbox_priorbox"], num_classes=21,
                            val_parm=val_parm)[0])
+    print(detection_evaluate("detection_eval", ["detection_out", "label"],
+                             name_size_file="data/VOC0712/test_name_size.txt")[0])
 
 
 if __name__ == '__main__':
