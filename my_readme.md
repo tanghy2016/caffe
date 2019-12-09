@@ -562,6 +562,17 @@ optional EmitConstraint emit_constraint = 10;
 
 - 增加```SolverParameter```参数
 
+### [BoxLandmarkDataLayer](./examples/pycaffe/layers/data_layer.py)
+
+- Python Layer
+- 输出: FaceImage, Box, Landmark
+- 提供各种数据增加: XXXXXX
+
+### [Landmark5Data](./examples/pycaffe/layers/landmark5_data.py)
+
+- Python Layer
+- 输出: FaceImage, Landmark5
+- 提供数据增加: 旋转, 随机尺寸缩放, 明亮度, 水平翻转
 
 
 [1]: https://github.com/happynear/caffe-windows/tree/504d8a85f552e988fabff88b026f2c31cb778329
