@@ -34,6 +34,21 @@ def softmax_with_loss(name, bottom, top=None):
     return layer, top
 
 
+def euclidean_loss(name, bottom, top=None):
+    if not top:
+        top = name
+    if not isinstance(bottom, list):
+        raise Exception("bottom must be list")
+    layer = "layer {\n"
+    layer += "  name: \"" + name + "\"\n"
+    layer += "  type: \"EuclideanLoss\"\n"
+    for bottom_name in bottom:
+        layer += "  bottom: \"" + bottom_name + "\"\n"
+    layer += "  top: \"" + top + "\"\n"
+    layer += "}"
+    return layer, top
+
+
 def multi_box_loss(name, bottom, propagate_down, num_classes, top=None):
     if not top:
         top = name
