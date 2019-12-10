@@ -204,21 +204,3 @@ class Landmark5Data(caffe.Layer):
             landmark_new.append(x_new)
             landmark_new.append(y_new)
         return np.array(landmark_new)
-
-
-if __name__ == '__main__':
-    img_root = r"F:/WFLW_300W/imgs"
-    label_file = r"F:/WFLW_300W/labels/test.txt"
-    test_data = Landmark5Data(img_root, label_file)
-    img, landmark5 = test_data[300]
-    print(img.shape, type(img))
-    print(landmark5.shape, type(landmark5))
-
-    """
-    for i in range(int(len(landmark5)/2)):
-        x = int(landmark5[2 * i]*img.shape[1])
-        y = int(landmark5[2 * i + 1]*img.shape[0])
-        cv2.circle(img=img, center=(x, y), radius=2, color=(0, 0, 255), thickness=-1)
-    # cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), color=(0, 255, 0), thickness=2)
-    cv2.imwrite("testOut.jpg", img)
-    """
