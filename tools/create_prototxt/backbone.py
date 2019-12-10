@@ -185,16 +185,16 @@ def half_net_backbone_for_landmark5(train=True, relu_type="ReLU"):
     temp_layer, top_name = conv_block("stage2_3", top_name, 64, 3, pad=1, stride=2, train=train, relu_type=relu_type)
     net_base += temp_layer + "\n"
 
-    temp_layer, top_name = half_conv_block1("stage4_1", top_name, 64, 64, train=train, relu_type=relu_type)
+    temp_layer, top_name = half_conv_block1("stage3_1", top_name, 64, 64, train=train, relu_type=relu_type)
     net_base += temp_layer + "\n"
-    temp_layer, top_name = half_conv_block1("stage4_2", top_name, 64, 64, train=train, relu_type=relu_type)
+    temp_layer, top_name = half_conv_block1("stage3_2", top_name, 64, 64, train=train, relu_type=relu_type)
     net_base += temp_layer + "\n"
-    temp_layer, top_name = half_conv_block1("stage4_2", top_name, 64, 64, train=train, relu_type=relu_type)
+    temp_layer, top_name = half_conv_block1("stage3_3", top_name, 64, 64, train=train, relu_type=relu_type)
     net_base += temp_layer + "\n"
-    temp_layer, top_name = conv_block("stage4_3", top_name, 128, 3, pad=1, stride=2, train=train, relu_type=relu_type)
+    temp_layer, top_name = conv_block("stage3_4", top_name, 128, 3, pad=1, stride=2, train=train, relu_type=relu_type)
     net_base += temp_layer + "\n"
 
-    temp_layer, top_name = half_conv_block1("stage4_2", top_name, 128, 128, train=train, relu_type=relu_type)
+    temp_layer, top_name = half_conv_block1("stage4_1", top_name, 128, 128, train=train, relu_type=relu_type)
     net_base += temp_layer + "\n"
     temp_layer, top_name = half_conv_block1("stage4_2", top_name, 128, 128, train=train, relu_type=relu_type)
     net_base += temp_layer + "\n"
