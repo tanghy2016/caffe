@@ -63,6 +63,33 @@ def image_data(source, new_height, new_width, name="data", top=["data", "label"]
     return layer, top
 
 
+def landmark5_data(img_w, img_h, label_file,
+                   name="data", top=["data", "landmark"], batch_size=64, root_folder="", phase="TRAIN"):
+    layer = "layer {\n"
+    layer += "  name: \"" + name + "\"\n"
+    layer += "  type: \"Python\"\n"
+    for top_name in top:
+        layer += "  top: \"" + top_name + "\"\n"
+    layer += "  include {\n"
+    layer += "    phase: " + phase + "\n"
+    layer += "  }\n"
+    layer += "  python_param {\n"
+    layer += "    module: landmark_loss\n"
+    layer += "    layer: LandmarkAccuracyLayer\n"
+    param_str = "'img_root': \"" + root_folder + "\""
+    param_str += "'label_file': \"" + label_file + "\""
+    param_str += "'batch_size': %d" % batch_size
+    param_str += "'img_size': [%d, %d]" % (img_w, img_h)
+    if phase == "TRAIN":
+        param_str += "'is_train': train"
+    else:
+        param_str += "'is_train': test"
+    layer += "    param_str: " + param_str + "\n"
+    layer += "  }\n"
+    layer += "}"
+    return layer, top
+
+
 def annotated_data(source, label_map_file, batch_sampler, new_height, new_width, name="data", data_type="LMDB",
                    top=["data", "label"], batch_size=64, phase="TRAIN",
                    crop_size=0, mirror=False, mean_file="", mean_value=[], scale_v=-1.0,
