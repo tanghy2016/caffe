@@ -12,7 +12,7 @@ import caffe
 def check_params(params):
     assert 'is_train' in params.keys(), 'Params must include is_train (train or test).'
 
-    required = ['batch_size', 'img_root', 'img_size']
+    required = ['batch_size', 'img_root', 'img_size', 'label_file']
     for r in required:
         assert r in params.keys(), 'Params must include {}'.format(r)
 
@@ -23,12 +23,13 @@ class Landmark5Data(caffe.Layer):
         self.root_path = params["img_root"]
         self.img_size = params["img_size"]
         self.batch_size = params["batch_size"]
+        self.label_file = params["label_file"]
         self.is_train = params["is_train"] in ["TRAIN", "Train", "train"]
         self.img_list = []
         self.pts_list = []
         self.box_list = []
 
-        for line in open(label_file):
+        for line in open(self.label_file):
             line_list = line.strip().split()
             self.img_list.append(line_list[0])
             self.pts_list.append([float(item) for item in line_list[1:-4]])
