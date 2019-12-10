@@ -8,6 +8,25 @@
 
 ------
 
+## install
+
+### Requirements
+
+- same as [BVLC/caffe][7]
+- 注意
+    - protobuf 的版本要求: 2.6.1
+    - 遇到类似要求升级protobuf版本的报错时, 别升级, caffe默认要求就是2.6.1, [参考][8]
+    - 遇到类似```caffe_pb2.py, line 23```乱码问题时, 因为系统的protobuf版本不是2.6.1造成, 将系统protobuf换成2.6.1即可, [安装方法参考][9]
+
+### install step
+
+- make -j24
+- make pycaffe
+
+### 使用Python Layer
+
+- 将所写的Python代码对应的目录添加到系统环境变量```PYTHONPATH```即可
+
 ## tools
 
 ### create_prototxt.py
@@ -581,5 +600,7 @@ optional EmitConstraint emit_constraint = 10;
 [4]: https://128.84.21.199/abs/1902.10859
 [5]: https://github.com/farmingyard/ShuffleNet
 [6]: https://github.com/weiliu89/caffe/tree/ssd
-
+[7]: https://github.com/BVLC/caffe
+[8]: https://www.cnblogs.com/mengmengmiaomiao/p/8134771.html
+[9]: https://blog.csdn.net/datase/article/details/79604186
 
