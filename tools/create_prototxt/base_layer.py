@@ -298,7 +298,7 @@ def slice(name, bottom, top, slice_point, axis=1):
     for top_name in top:
         layer += "  top: \"" + top_name + "\"\n"
     layer += "  slice_param {\n"
-    layer += "    slice_point: " + str(slice_point) + "\n"
+    layer += "    slice_point: " + str(int(slice_point)) + "\n"
     if axis != 1:
         layer += "    axis: " + str(axis) + "\n"
     layer += "  }\n"
