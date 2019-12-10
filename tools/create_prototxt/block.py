@@ -174,13 +174,14 @@ def shufflev2_block(bottom, top_num, num_input, num_output, stride=1,
 
 
 def half_conv_block1(name, bottom, input_num, output_num, train=True, relu_type="ReLU"):
+    """branch1_2 include 1x conv3x3"""
     if (input_num / 2) * 2 != input_num:
         raise Exception("input error!")
     top_slice = [name + "/branch1_1", name + "/branch1_2"]
-    temp_layer, top_name_branch = slice(name + "/slice", bottom, top_slice, input_num / 2)
+    temp_layer, top_name_branch = slice(name + "/slice", bottom, top_slice, int(input_num / 2))
     net_block = temp_layer + "\n"
 
-    temp_layer, top_name = conv_block(name + "/conv3", top_name_branch[-1], input_num / 2, 3, pad=1, stride=1,
+    temp_layer, top_name = conv_block(name + "/conv3", top_name_branch[-1], int(input_num / 2), 3, pad=1, stride=1,
                                       train=train, relu_type=relu_type)
     net_block += temp_layer + "\n"
 
@@ -194,17 +195,18 @@ def half_conv_block1(name, bottom, input_num, output_num, train=True, relu_type=
 
 
 def half_conv_block2(name, bottom, input_num, output_num, train=True, relu_type="ReLU"):
+    """branch1_2 include 2x conv3x3"""
     if (input_num / 2) * 2 != input_num:
         raise Exception("input error!")
     top_slice = [name + "/branch1_1", name + "/branch1_2"]
-    temp_layer, top_name_branch = slice(name + "/slice", bottom, top_slice, input_num / 2)
+    temp_layer, top_name_branch = slice(name + "/slice", bottom, top_slice, int(input_num / 2))
     net_block = temp_layer + "\n"
 
-    temp_layer, top_name = conv_block(name + "/conv3_1", top_name_branch[-1], input_num / 2, 3, pad=1, stride=1,
+    temp_layer, top_name = conv_block(name + "/conv3_1", top_name_branch[-1], int(input_num / 2), 3, pad=1, stride=1,
                                       train=train, relu_type=relu_type)
     net_block += temp_layer + "\n"
 
-    temp_layer, top_name = conv_block(name + "/conv3_2", top_name, input_num / 2, 3, pad=1, stride=1,
+    temp_layer, top_name = conv_block(name + "/conv3_2", top_name, int(input_num / 2), 3, pad=1, stride=1,
                                       train=train, relu_type=relu_type)
     net_block += temp_layer + "\n"
 
