@@ -19,6 +19,29 @@ def accuracy(name, bottom, top=None):
     return layer, top
 
 
+def landmark_accuracy(name, bottom, img_size, top=None):
+    if not top:
+        top = name
+    if not isinstance(bottom, list):
+        raise Exception("bottom must be list")
+    layer = "layer {\n"
+    layer += "  name: \"" + name + "\"\n"
+    layer += "  type: \"Python\"\n"
+    for bottom_name in bottom:
+        layer += "  bottom: \"" + bottom_name + "\"\n"
+    layer += "  top: \"" + top + "\"\n"
+    layer += "  include {\n"
+    layer += "    phase: TEST\n"
+    layer += "  }\n"
+    layer += "  python_param {\n"
+    layer += "    module: landmark_loss\n"
+    layer += "    layer: LandmarkAccuracyLayer\n"
+    layer += "    param_str: \"{'img_size': %d}\"\n" % img_size
+    layer += "  }\n"
+    layer += "}"
+    return layer, top
+
+
 def softmax_with_loss(name, bottom, top=None):
     if not top:
         top = name
