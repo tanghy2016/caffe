@@ -172,6 +172,80 @@ def half_net_backbone(train=True, relu_type="ReLU"):
     return net_base, top_name
 
 
+def half_net_backbone_for_landmark5(train=True, relu_type="ReLU"):
+    temp_layer, top_name = conv_block("conv1_1", "data", 16, 3, pad=1, stride=1, train=train, relu_type=relu_type)
+    net_base = temp_layer + "\n"
+    temp_layer, top_name = conv_block("conv1_2", top_name, 16, 3, pad=1, stride=2, train=train, relu_type=relu_type)
+    net_base += temp_layer + "\n"
+
+    temp_layer, top_name = half_conv_block1("stage2_1", top_name, 16, 32, train=train, relu_type=relu_type)
+    net_base += temp_layer + "\n"
+    temp_layer, top_name = half_conv_block1("stage2_2", top_name, 32, 32, train=train, relu_type=relu_type)
+    net_base += temp_layer + "\n"
+    temp_layer, top_name = conv_block("stage2_3", top_name, 64, 3, pad=1, stride=2, train=train, relu_type=relu_type)
+    net_base += temp_layer + "\n"
+
+    temp_layer, top_name = half_conv_block1("stage4_1", top_name, 64, 64, train=train, relu_type=relu_type)
+    net_base += temp_layer + "\n"
+    temp_layer, top_name = half_conv_block1("stage4_2", top_name, 64, 64, train=train, relu_type=relu_type)
+    net_base += temp_layer + "\n"
+    temp_layer, top_name = half_conv_block1("stage4_2", top_name, 64, 64, train=train, relu_type=relu_type)
+    net_base += temp_layer + "\n"
+    temp_layer, top_name = conv_block("stage4_3", top_name, 128, 3, pad=1, stride=2, train=train, relu_type=relu_type)
+    net_base += temp_layer + "\n"
+
+    temp_layer, top_name = half_conv_block1("stage4_2", top_name, 128, 128, train=train, relu_type=relu_type)
+    net_base += temp_layer + "\n"
+    temp_layer, top_name = half_conv_block1("stage4_2", top_name, 128, 128, train=train, relu_type=relu_type)
+    net_base += temp_layer + "\n"
+    temp_layer, top_name = conv_block("stage4_3", top_name, 10, 7, pad=0, stride=7, train=train, relu_type=relu_type)
+    net_base += temp_layer + "\n"
+    temp_layer, top_name = sigmoid("sigmoid", top_name)
+    net_base += temp_layer + "\n"
+    return net_base, top_name
+
+
+def ssd_top_backbone(top_name, min_size, max_size, aspect_ratio, step, box_num, class_num, train=True):
+    top_net = ""
+    for i in range(len(top_name)):
+        temp_layer, top_layer = conv_block(top_name[i] + "/mbox_loc", top_name[i], box_num[i] * 4, 3, pad=1,
+                                           stride=1, train=True, relu_type="ReLU")
+        top_net += temp_layer + "\n"
+        temp_layer, top_layer = permute(top_name[i] + "/mbox_loc_perm", top_layer, [0, 2, 3, 1], top=None)
+        top_net += temp_layer + "\n"
+        temp_layer, top_layer = flatten(top_name[i] + "/mbox_loc_flat", top_layer, top=None)
+        top_net += temp_layer + "\n"
+
+        temp_layer, top_layer = conv_block(top_name[i] + "/mbox_conf", top_name[i], box_num[i] * class_num, 3, pad=1,
+                                           stride=1, train=True, relu_type="ReLU")
+        top_net += temp_layer + "\n"
+        temp_layer, top_layer = permute(top_name[i] + "/mbox_conf_perm", top_layer, [0, 2, 3, 1], top=None)
+        top_net += temp_layer + "\n"
+        temp_layer, top_layer = flatten(top_name[i] + "/mbox_conf_flat", top_layer, top=None)
+        top_net += temp_layer + "\n"
+
+        temp_layer, top_layer = prior_box(top_name[i] + "/mbox_priorbox", [top_name[i], "data"],
+                                          min_size[i], max_size[i], aspect_ratio[i],
+                                          variance=[0.1, 0.1, 0.2, 0.2], step=step[i], top=None)
+        top_net += temp_layer + "\n"
+
+    temp_layer, top_name_loc = concat("mbox_loc", [item + "/mbox_loc_flat" for item in top_name], top=None, axis=1)
+    top_net += temp_layer + "\n"
+    temp_layer, top_name_conf = concat("mbox_conf", [item + "/mbox_conf_flat" for item in top_name], top=None, axis=1)
+    top_net += temp_layer + "\n"
+    temp_layer, top_name_priorbox = concat("mbox_priorbox", [item + "/mbox_priorbox" for item in top_name], top=None,
+                                           axis=2)
+    top_net += temp_layer + "\n"
+    if not train:
+        temp_layer, top_name_conf = reshape("mbox_conf_reshape", top_name_conf, [0, -1, 2])
+        top_net += temp_layer + "\n"
+        temp_layer, top_name_conf = softmax("mbox_conf_softmax", top_name_conf, axis=2)
+        top_net += temp_layer + "\n"
+        temp_layer, top_name_conf = flatten("mbox_conf_flatten", top_name_conf)
+        top_net += temp_layer + "\n"
+    return top_net, [top_name_loc, top_name_conf, top_name_priorbox]
+
+
 def test_backbone():
     # net, top_name = shuffle_net_v2_backbone(train=True)
     # net, top_name = eye_cls_backbone(train=True)
