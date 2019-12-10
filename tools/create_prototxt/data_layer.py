@@ -76,14 +76,16 @@ def landmark5_data(img_w, img_h, label_file,
     layer += "  python_param {\n"
     layer += "    module: landmark_loss\n"
     layer += "    layer: LandmarkAccuracyLayer\n"
-    param_str = "'img_root': \"" + root_folder + "\""
-    param_str += "'label_file': \"" + label_file + "\""
-    param_str += "'batch_size': %d" % batch_size
-    param_str += "'img_size': [%d, %d]" % (img_w, img_h)
+    param_str = "\"{"
+    param_str += "'img_root': \'" + root_folder + "\',"
+    param_str += "'label_file': \'" + label_file + "\',"
+    param_str += "'batch_size': %d" % batch_size + ","
+    param_str += "'img_size': [%d, %d]," % (img_w, img_h)
     if phase == "TRAIN":
-        param_str += "'is_train': train"
+        param_str += "'is_train': 'train'"
     else:
-        param_str += "'is_train': test"
+        param_str += "'is_train': 'test'"
+    param_str += "}\""
     layer += "    param_str: " + param_str + "\n"
     layer += "  }\n"
     layer += "}"
