@@ -21,7 +21,7 @@ class Landmark5Data(caffe.Layer):
     def setup(self, bottom, top):
         params = eval(self.param_str)
         self.root_path = params["img_root"]
-        self.img_size = params["img_size"]
+        self.img_size = tuple(params["img_size"])
         self.batch_size = params["batch_size"]
         self.label_file = params["label_file"]
         self.is_train = params["is_train"] in ["TRAIN", "Train", "train"]
@@ -62,12 +62,12 @@ class Landmark5Data(caffe.Layer):
 
     def _get_next_minibatch_inds(self):
         """Return the roidb indices for the next minibatch."""
-        end_idx = min(self.num + self.batch_size, len(self.im_file_names))
+        end_idx = min(self.num + self.batch_size, len(self.img_list))
         db_inds = self.indexs[self.num: end_idx]
         self.num = self.num + self.batch_size
-        if self.num >= len(self.im_file_names):
+        if self.num >= len(self.img_list):
             shuffle(self.indexs)
-            self.num -= len(self.im_file_names)
+            self.num -= len(self.img_list)
             db_inds += self.indexs[:self.num]
         db_inds = np.asarray(db_inds)
         return db_inds
@@ -76,6 +76,10 @@ class Landmark5Data(caffe.Layer):
         img = cv2.imread(os.path.join(self.root_path, self.img_list[idx]))
         landmark5 = self.pts_list[idx, :]
         box = self.box_list[idx, :]
+        box[0] = min(max(box[0], 0), img.shape[1]-1)
+        box[1] = min(max(box[1], 0), img.shape[0]-1)
+        box[2] = max(min(img.shape[1]-1, box[2]), 0)
+        box[3] = max(min(img.shape[0]-1, box[3]), 0)
         face_img, landmark5 = self.box_process(img, landmark5, box)
         if self.is_train:
             face_img = self.random_bright(face_img)
@@ -186,7 +190,8 @@ class Landmark5Data(caffe.Layer):
             tag = -1
         for i in range(4):
             fill.append(int(np.abs(np.sin(radian)) * trbl[(i + tag + 4) % 4]))
-        image = cv2.copyMakeBorder(im, fill[0], fill[2], fill[3], fill[1], cv2.BORDER_CONSTANT)
+        if fill[0] > 0 or fill[2] > 0 or fill[3] > 0 or fill[1] > 0:
+            image = cv2.copyMakeBorder(im, fill[0], fill[2], fill[3], fill[1], cv2.BORDER_CONSTANT)
         center[0] += fill[3]
         center[1] += fill[0]
 
@@ -197,7 +202,7 @@ class Landmark5Data(caffe.Layer):
     def landmark_rotate(self, landmark, center, fill, angle):
         radian = angle / 180.0 * np.pi
         landmark_new = []
-        for i in range(int(len(landmark)/2)):
+        for i in range(int(len(landmark) / 2)):
             x = landmark[i * 2] + fill[0]
             y = landmark[i * 2 + 1] + fill[1]
             x_new = (x - center[0]) * np.cos(radian) + (y - center[1]) * np.sin(radian) + center[0]
