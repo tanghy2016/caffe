@@ -21,7 +21,11 @@ class LandmarkAccuracyLayer(caffe.Layer):
         top[0].reshape(1)
 
     def forward(self, bottom, top):
-        diff = (bottom[0].data - bottom[1].data) * self.img_size  # (N, 136) for landmark68
+        N = bottom[0].data.shape[0]  # batch size
+        data1 = bottom[0].data.reshape(N, -1)  # conv layer out data is (N, C, W, H), maybe W=H=1
+        data2 = bottom[1].data.reshape(N, -1)
+
+        diff = (data1 - data2) * self.img_size  # (N, 136) for landmark68
         diff = diff**2  # (N, 136) for landmark68
         diff_x = diff[:, 0::2]  # (N, 68) for landmark68
         diff_y = diff[:, 1::2]  # (N, 68) for landmark68
