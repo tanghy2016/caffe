@@ -74,8 +74,8 @@ class Landmark5Data(caffe.Layer):
 
     def load_data(self, idx):
         img = cv2.imread(os.path.join(self.root_path, self.img_list[idx]))
-        landmark5 = self.pts_list[idx, :]
-        box = self.box_list[idx, :]
+        landmark5 = self.pts_list[idx, :].copy()
+        box = self.box_list[idx, :].copy()
         box[0] = min(max(box[0], 0), img.shape[1]-1)
         box[1] = min(max(box[1], 0), img.shape[0]-1)
         box[2] = max(min(img.shape[1]-1, box[2]), 0)
@@ -85,28 +85,40 @@ class Landmark5Data(caffe.Layer):
             face_img = self.random_bright(face_img)
             face_img, landmark5 = self.random_flip(face_img, landmark5)
         face_img = self.standardization(face_img)
+
+        """
+        out_path = os.path.join("/home/ubuntu/tanghy/landmark68_pfld/dataset/WFLW_300W/out", str(idx) + ".jpg")
+        for i in range(int(len(landmark5) / 2)):
+            x = int(landmark5[2 * i] * face_img.shape[0])
+            y = int(landmark5[2 * i + 1] * face_img.shape[1])
+            cv2.circle(img=face_img, center=(x, y), radius=2, color=(0, 0, 255), thickness=-1)
+        cv2.imwrite(out_path, face_img)
+        print(idx, face_img.shape, landmark5.shape)
+        """
+
         return face_img, landmark5
 
     def box_process(self, img, landmark5, box):
         centor_x = (box[0] + box[2]) / 2.0
         centor_y = (box[1] + box[3]) / 2.0
 
-        random_angle = random.randint(len(self.angle))
-        if self.angle[random_angle] != 0:
-            # 图像旋转
-            img, center, fill = self.img_rotate(img, [centor_x, centor_y], self.angle[random_angle])
-            # 关键点旋转
-            landmark5 = self.landmark_rotate(landmark5, center, fill, self.angle[random_angle])
-            # face box旋转
-            box4 = [box[0], box[1], box[2], box[1], box[2], box[3], box[0], box[3]]
-            box4 = self.landmark_rotate(box4, center, fill, self.angle[random_angle])
-            box[0] = min(box4[0::2])
-            box[1] = min(box4[1::2])
-            box[2] = max(box4[0::2])
-            box[3] = max(box4[1::2])
+        if self.is_train:
+            random_angle = random.randint(len(self.angle))
+            if self.angle[random_angle] != 0:
+                # 图像旋转
+                img, center, fill = self.img_rotate(img, [centor_x, centor_y], self.angle[random_angle])
+                # 关键点旋转
+                landmark5 = self.landmark_rotate(landmark5, center, fill, self.angle[random_angle])
+                # face box旋转
+                box4 = [box[0], box[1], box[2], box[1], box[2], box[3], box[0], box[3]]
+                box4 = self.landmark_rotate(box4, center, fill, self.angle[random_angle])
+                box[0] = min(box4[0::2])
+                box[1] = min(box4[1::2])
+                box[2] = max(box4[0::2])
+                box[3] = max(box4[1::2])
 
-            centor_x = (box[0] + box[2]) / 2.0
-            centor_y = (box[1] + box[3]) / 2.0
+                centor_x = (box[0] + box[2]) / 2.0
+                centor_y = (box[1] + box[3]) / 2.0
 
         w = box[2] - box[0]
         h = box[3] - box[1]
