@@ -594,6 +594,24 @@ optional EmitConstraint emit_constraint = 10;
 - 提供数据增加: 旋转, 随机尺寸缩放, 明亮度, 水平翻转
 
 
+## BUG in Caffe
+
+### Solver BUG
+
+- 描述: 在```solver.prototxt```中设置```display: 20```, 但实际上才每迭代10次就打印一次log日志
+- 经过定位发现在```solver.cpp```的```Step```函数中出了问题
+    ```C++
+    while (iter_ < stop_iter) {
+      ...
+      ApplyUpdate();  //里面对iter已经做了++
+      ++ter;
+      ...
+    }
+    ```
+- ```ApplyUpdate```的实现在```sgd_solver.cpp```中
+- 继承关系, ```SGD```继承了```Solver```, 别的优化算法都继承了```SGD```
+- 因此, 将两处冲突的地方删去一个即可, 考虑删掉```ApplyUpdate```里面的, 更清晰
+
 [1]: https://github.com/happynear/caffe-windows/tree/504d8a85f552e988fabff88b026f2c31cb778329
 [2]: https://github.com/yonghenglh6/DepthwiseConvolution
 [3]: https://128.84.21.199/abs/1812.11317

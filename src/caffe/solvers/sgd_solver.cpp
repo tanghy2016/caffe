@@ -123,7 +123,7 @@ void SGDSolver<Dtype>::ApplyUpdate() {
 
   // Increment the internal iter_ counter -- its value should always indicate
   // the number of times the weights have been updated.
-  ++this->iter_;
+  // ++this->iter_;
 }
 
 template <typename Dtype>
