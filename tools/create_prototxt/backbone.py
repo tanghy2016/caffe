@@ -198,7 +198,8 @@ def half_net_backbone_for_landmark5(train=True, relu_type="ReLU"):
     net_base += temp_layer + "\n"
     temp_layer, top_name = half_conv_block1("stage4_2", top_name, 128, 128, train=train, relu_type=relu_type)
     net_base += temp_layer + "\n"
-    temp_layer, top_name = conv_block("stage4_3", top_name, 10, 7, pad=0, stride=7, train=train, relu_type=relu_type)
+    temp_layer, top_name = conv_block("stage4_3", top_name, 10, 7, pad=0, stride=7, bias_term_conv=True,
+                                      train=train, has_bn=False, relu_type="")
     net_base += temp_layer + "\n"
     temp_layer, top_name = sigmoid("sigmoid", top_name)
     net_base += temp_layer + "\n"
