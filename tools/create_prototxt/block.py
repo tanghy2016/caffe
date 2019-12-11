@@ -69,15 +69,17 @@ def mobilenetv2block(name, bottom, num_input, num_output, kernel_size=3, expansi
 
 
 def conv_block(name, bottom, num_output, kernel_size, top=None, blob_same=True,
-               bias_term_conv=False, bias_term_scale=True,
-               pad=0, stride=1, group=1, train=True, relu_type="ReLU6", c_w_decay_mult=1, weight_filler="msra",
-               type_s=None):
+               pad=0, stride=1, group=1, bias_term_conv=False,
+               has_bn=True, train=True, bias_term_scale=True, type_s=None,
+               relu_type="ReLU6", c_w_decay_mult=1, weight_filler="msra"):
     layer = ""
     if not top:
         top_conv = name
     name_bn = name + "/bn"
     name_scale = name + "/scale"
     name_relu = name + "/relu"
+    if not has_bn:
+        bias_term_conv = True
     if group == 1:
         temp_layer, top_name = conv(name, bottom, num_output, kernel_size, top=top_conv, bias_term=bias_term_conv,
                                     pad=pad, stride=stride, w_decay_mult=c_w_decay_mult, weight_filler=weight_filler)
@@ -85,20 +87,21 @@ def conv_block(name, bottom, num_output, kernel_size, top=None, blob_same=True,
         temp_layer, top_name = dwconv(name, bottom, num_output, kernel_size, top=top_conv, bias_term=bias_term_conv,
                                       pad=pad, stride=stride, w_decay_mult=c_w_decay_mult, weight_filler=weight_filler)
     layer += temp_layer + "\n"
-    if blob_same:
-        temp_layer, top_name = bn(name_bn, top_name, top=name, train=train)
-    else:
-        temp_layer, top_name = bn(name_bn, top_name, top=name_bn, train=train)
-    layer += temp_layer + "\n"
-    if blob_same:
-        temp_layer, top_name = scale(name_scale, top_name, top=name,
-                                     type_s=type_s, w_value=1, w_lr_mult=1, w_decay_mult=0,
-                                     bias_term=bias_term_scale, b_lr_mult=1, b_decay_mult=0)
-    else:
-        temp_layer, top_name = scale(name_scale, top_name, top=name_scale,
-                                     type_s=type_s, w_value=1, w_lr_mult=1, w_decay_mult=0,
-                                     bias_term=bias_term_scale, b_lr_mult=1, b_decay_mult=0)
-    layer += temp_layer + "\n"
+    if has_bn:
+        if blob_same:
+            temp_layer, top_name = bn(name_bn, top_name, top=name, train=train)
+        else:
+            temp_layer, top_name = bn(name_bn, top_name, top=name_bn, train=train)
+        layer += temp_layer + "\n"
+        if blob_same:
+            temp_layer, top_name = scale(name_scale, top_name, top=name,
+                                         type_s=type_s, w_value=1, w_lr_mult=1, w_decay_mult=0,
+                                         bias_term=bias_term_scale, b_lr_mult=1, b_decay_mult=0)
+        else:
+            temp_layer, top_name = scale(name_scale, top_name, top=name_scale,
+                                         type_s=type_s, w_value=1, w_lr_mult=1, w_decay_mult=0,
+                                         bias_term=bias_term_scale, b_lr_mult=1, b_decay_mult=0)
+        layer += temp_layer + "\n"
     if len(relu_type) > 0:
         if blob_same:
             temp_layer, top_name = relu(name_relu, top_name, top=name, type=relu_type)
