@@ -25,7 +25,7 @@ def landmark5_net():
     test_label_file = "/home/ubuntu/tanghy/landmark68_pfld/dataset/WFLW_300W/labels/test.txt"
     data_layer, top_layer = landmark5_data(img_w=img_w, img_h=img_h,
                                            label_file=test_label_file, root_folder=test_root_folder,
-                                           batch_size=batch_size, phase="TEST")
+                                           batch_size=batch_size*4, phase="TEST")
     net_val += data_layer + "\n"
 
     temp_layer_deploy, top_name_deploy = deploy_data(shape=[1, 3, img_w, img_h])
