@@ -27,6 +27,7 @@ class Landmark5Data(caffe.Layer):
         self.label_file = params["label_file"]
         self.is_train = params["is_train"] in ["TRAIN", "Train", "train"]
         self.num_workers = params["num_workers"] if "num_workers" in params else 4
+        self.is_std = params["is_std"] if "is_std" in params else True
         self.img_list = []
         self.pts_list = []
         self.box_list = []
@@ -96,7 +97,8 @@ class Landmark5Data(caffe.Layer):
         if self.is_train:
             face_img = self.random_bright(face_img)
             face_img, landmark5 = self.random_flip(face_img, landmark5)
-        face_img = self.standardization(face_img)
+        if self.is_std:
+            face_img = self.standardization(face_img)
 
         """
         # debug for loss error that started at the second epoch 
@@ -109,7 +111,7 @@ class Landmark5Data(caffe.Layer):
         print(idx, face_img.shape, landmark5.shape)
         """
 
-        return face_img, landmark5
+        return face_img.astype(np.float32), landmark5
 
     def box_process(self, img, landmark5, box):
         centor_x = (box[0] + box[2]) / 2.0
