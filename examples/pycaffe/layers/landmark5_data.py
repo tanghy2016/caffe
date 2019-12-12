@@ -2,6 +2,7 @@
 
 import os
 from random import shuffle
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 from numpy import random
@@ -25,6 +26,7 @@ class Landmark5Data(caffe.Layer):
         self.batch_size = params["batch_size"]
         self.label_file = params["label_file"]
         self.is_train = params["is_train"] in ["TRAIN", "Train", "train"]
+        self.num_workers = params["num_workers"] if "num_workers" in params else 4
         self.img_list = []
         self.pts_list = []
         self.box_list = []
@@ -52,13 +54,23 @@ class Landmark5Data(caffe.Layer):
 
     def forward(self, bottom, top):
         db_inds = self._get_next_minibatch_inds()
+        with ThreadPoolExecutor(self.num_workers) as executor:
+            for i in range(self.batch_size):
+                executor.submit(self.thread_load_data, i, db_inds[i], top)
+        """
         for i in range(self.batch_size):
             image, landmark5 = self.load_data(db_inds[i])
             top[0].data[i, ...] = image.transpose((2, 0, 1))
             top[1].data[i, ...] = landmark5
+        """
 
     def backward(self, top, propagate_down, bottom):
         pass
+
+    def thread_load_data(self, i, idx, top):
+        image, landmark5 = self.load_data(idx)
+        top[0].data[i, ...] = image.transpose((2, 0, 1))
+        top[1].data[i, ...] = landmark5
 
     def _get_next_minibatch_inds(self):
         """Return the roidb indices for the next minibatch."""
