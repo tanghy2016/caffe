@@ -86,8 +86,8 @@ class Landmark5Data(caffe.Layer):
 
     def load_data(self, idx):
         img = cv2.imread(os.path.join(self.root_path, self.img_list[idx]))
-        landmark5 = self.pts_list[idx, :].copy()
-        box = self.box_list[idx, :].copy()
+        landmark5 = self.pts_list[idx, :].copy()   # copy是必须的, np.array结构类似C++的传地址操作
+        box = self.box_list[idx, :].copy()         # 如果不加copy, 则第二次epoch后均会出错
         box[0] = min(max(box[0], 0), img.shape[1]-1)
         box[1] = min(max(box[1], 0), img.shape[0]-1)
         box[2] = max(min(img.shape[1]-1, box[2]), 0)
@@ -99,6 +99,7 @@ class Landmark5Data(caffe.Layer):
         face_img = self.standardization(face_img)
 
         """
+        # debug for loss error that started at the second epoch 
         out_path = os.path.join("/home/ubuntu/tanghy/landmark68_pfld/dataset/WFLW_300W/out", str(idx) + ".jpg")
         for i in range(int(len(landmark5) / 2)):
             x = int(landmark5[2 * i] * face_img.shape[0])
