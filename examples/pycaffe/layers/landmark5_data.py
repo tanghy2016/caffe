@@ -49,6 +49,7 @@ class Landmark5Data(caffe.Layer):
         self.box_scale_max = 1.3
         self.mean = np.array([127, 127, 127])
         self.std = 128.0
+        self.color_change = PhotometricDistort()
 
     def reshape(self, bottom, top):
         pass
@@ -87,15 +88,16 @@ class Landmark5Data(caffe.Layer):
 
     def load_data(self, idx):
         img = cv2.imread(os.path.join(self.root_path, self.img_list[idx]))
-        landmark5 = self.pts_list[idx, :].copy()   # copy是必须的, np.array结构类似C++的传地址操作
-        box = self.box_list[idx, :].copy()         # 如果不加copy, 则第二次epoch后均会出错
-        box[0] = min(max(box[0], 0), img.shape[1]-1)
-        box[1] = min(max(box[1], 0), img.shape[0]-1)
-        box[2] = max(min(img.shape[1]-1, box[2]), 0)
-        box[3] = max(min(img.shape[0]-1, box[3]), 0)
+        landmark5 = self.pts_list[idx, :].copy()  # copy是必须的, np.array结构类似C++的传地址操作
+        box = self.box_list[idx, :].copy()  # 如果不加copy, 则第二次epoch后均会出错
+        box[0] = min(max(box[0], 0), img.shape[1] - 1)
+        box[1] = min(max(box[1], 0), img.shape[0] - 1)
+        box[2] = max(min(img.shape[1] - 1, box[2]), 0)
+        box[3] = max(min(img.shape[0] - 1, box[3]), 0)
         face_img, landmark5 = self.box_process(img, landmark5, box)
         if self.is_train:
-            face_img = self.random_bright(face_img)
+            # face_img = self.random_bright(face_img)
+            face_img = self.color_change(face_img)
             face_img, landmark5 = self.random_flip(face_img, landmark5)
         if self.is_std:
             face_img = self.standardization(face_img)
@@ -114,27 +116,14 @@ class Landmark5Data(caffe.Layer):
         return face_img.astype(np.float32), landmark5
 
     def box_process(self, img, landmark5, box):
-        centor_x = (box[0] + box[2]) / 2.0
-        centor_y = (box[1] + box[3]) / 2.0
-
         if self.is_train:
             random_angle = random.randint(len(self.angle))
             if self.angle[random_angle] != 0:
-                # 图像旋转
-                img, center, fill = self.img_rotate(img, [centor_x, centor_y], self.angle[random_angle])
-                # 关键点旋转
-                landmark5 = self.landmark_rotate(landmark5, center, fill, self.angle[random_angle])
-                # face box旋转
-                box4 = [box[0], box[1], box[2], box[1], box[2], box[3], box[0], box[3]]
-                box4 = self.landmark_rotate(box4, center, fill, self.angle[random_angle])
-                box[0] = min(box4[0::2])
-                box[1] = min(box4[1::2])
-                box[2] = max(box4[0::2])
-                box[3] = max(box4[1::2])
+                # 图像&关键点&face box 旋转
+                img, box, landmark5 = self.random_rotate(img, box, landmark5, self.angle[random_angle])
 
-                centor_x = (box[0] + box[2]) / 2.0
-                centor_y = (box[1] + box[3]) / 2.0
-
+        centor_x = (box[0] + box[2]) / 2.0
+        centor_y = (box[1] + box[3]) / 2.0
         w = box[2] - box[0]
         h = box[3] - box[1]
 
@@ -168,14 +157,14 @@ class Landmark5Data(caffe.Layer):
             img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT)
         for i in range(int(len(landmark5) / 2)):
             landmark5[2 * i] += left - box[0]
-            landmark5[2 * i] = min(landmark5[2 * i], box[2])
-            landmark5[2 * i] = max(landmark5[2 * i], 0)
+            landmark5[2 * i] = max(min(landmark5[2 * i], box[2]), 0)
             landmark5[2 * i] /= (box[2] - box[0])
             landmark5[2 * i + 1] += top - box[1]
-            landmark5[2 * i + 1] = min(landmark5[2 * i + 1], box[3])
-            landmark5[2 * i + 1] = max(landmark5[2 * i + 1], 0)
+            landmark5[2 * i + 1] = max(min(landmark5[2 * i + 1], box[3]), 0)
             landmark5[2 * i + 1] /= (box[3] - box[1])
         face_img = img[box[1]:box[3], box[0]:box[2], :]
+        if self.is_train:
+            face_img = self.color_change(face_img)
         face_img = cv2.resize(face_img, self.img_size)
         return face_img, landmark5
 
@@ -205,35 +194,204 @@ class Landmark5Data(caffe.Layer):
         img = img / self.std
         return img
 
-    def img_rotate(self, im, center, angle):
+    def random_rotate(self, im, box, landmark, angle):
         """center: list/tuple, (x, y)"""
         radian = angle / 180.0 * np.pi
+        centor_x = (box[0] + box[2]) / 2.0
+        centor_y = (box[1] + box[3]) / 2.0
+        center = [centor_x, centor_y]
         # top, right, bottom, left
+        # cv2.shape[0]->h, cv2.shape[1]->w
         trbl = [center[1], (im.shape[1] - center[0] + 1), (im.shape[0] - center[1] + 1), center[0]]
-        fill = []
-        if angle > 0:
-            tag = 1
-        else:
-            tag = -1
+        fill = []  # top, right, bottom, left
+        tag = 1 if angle > 0 else -1
         for i in range(4):
             fill.append(int(np.abs(np.sin(radian)) * trbl[(i + tag + 4) % 4]))
         if fill[0] > 0 or fill[2] > 0 or fill[3] > 0 or fill[1] > 0:
             image = cv2.copyMakeBorder(im, fill[0], fill[2], fill[3], fill[1], cv2.BORDER_CONSTANT)
         center[0] += fill[3]
         center[1] += fill[0]
-
+        # angle>0 逆时针, angle<0 顺时针
         affine_matrix = cv2.getRotationMatrix2D(tuple(center), angle, 1.0)
         image = cv2.warpAffine(image, affine_matrix, (image.shape[1], image.shape[0]))
-        return image, center, (fill[3], fill[0])
 
-    def landmark_rotate(self, landmark, center, fill, angle):
-        radian = angle / 180.0 * np.pi
-        landmark_new = []
+        def rotate_point(point, center, radian):
+            x = (point[0] - center[0]) * np.cos(radian) + (point[1] - center[1]) * np.sin(radian) + center[0]
+            y = -(point[0] - center[0]) * np.sin(radian) + (point[1] - center[1]) * np.cos(radian) + center[1]
+            return x, y
+
+        # for landmark
+        landmark_new = [0] * len(landmark)
         for i in range(int(len(landmark) / 2)):
-            x = landmark[i * 2] + fill[0]
-            y = landmark[i * 2 + 1] + fill[1]
-            x_new = (x - center[0]) * np.cos(radian) + (y - center[1]) * np.sin(radian) + center[0]
-            y_new = -(x - center[0]) * np.sin(radian) + (y - center[1]) * np.cos(radian) + center[1]
-            landmark_new.append(x_new)
-            landmark_new.append(y_new)
-        return np.array(landmark_new)
+            landmark_new[i * 2], landmark_new[i * 2 + 1] = rotate_point(
+                [landmark[i * 2] + fill[3], landmark[i * 2 + 1] + fill[0]],
+                center, radian)
+
+        # for face_box
+        box4 = [box[0], box[1], box[2], box[1], box[2], box[3], box[0], box[3]]
+        box4_new = [0] * len(box4)
+        for i in range(int(len(box4) / 2)):
+            box4_new[i * 2], box4_new[i * 2 + 1] = rotate_point(
+                [box4[i * 2] + fill[3], box4[i * 2 + 1] + fill[0]],
+                center, radian)
+        box_new = [0] * len(box)
+        box_new[0] = min(box4_new[0::2])
+        box_new[1] = min(box4_new[1::2])
+        box_new[2] = max(box4_new[0::2])
+        box_new[3] = max(box4_new[1::2])
+        return image, np.array(box_new), np.array(landmark_new)
+
+
+class RandomContrast(object):
+    def __init__(self, lower=0.5, upper=1.5):
+        self.lower = lower
+        self.upper = upper
+        assert self.upper >= self.lower, "contrast upper must be >= lower."
+        assert self.lower >= 0, "contrast lower must be non-negative."
+
+    # expects float image
+    def __call__(self, image):
+        if random.randint(2):
+            alpha = random.uniform(self.lower, self.upper)
+            image *= alpha
+        return image
+
+
+class ConvertColor(object):
+    def __init__(self, current, transform):
+        self.transform = transform
+        self.current = current
+
+    def __call__(self, image):
+        if self.current == 'BGR' and self.transform == 'HSV':
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        elif self.current == 'RGB' and self.transform == 'HSV':
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+        elif self.current == 'BGR' and self.transform == 'RGB':
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        elif self.current == 'HSV' and self.transform == 'BGR':
+            image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
+        elif self.current == 'HSV' and self.transform == "RGB":
+            image = cv2.cvtColor(image, cv2.COLOR_HSV2RGB)
+        else:
+            raise NotImplementedError
+        return image
+
+
+class RandomSaturation(object):
+    def __init__(self, lower=0.5, upper=1.5):
+        self.lower = lower
+        self.upper = upper
+        assert self.upper >= self.lower, "contrast upper must be >= lower."
+        assert self.lower >= 0, "contrast lower must be non-negative."
+
+    def __call__(self, image):
+        if random.randint(2):
+            image[:, :, 1] *= random.uniform(self.lower, self.upper)
+        return image
+
+
+class RandomHue(object):
+    def __init__(self, delta=18.0):
+        assert delta >= 0.0 and delta <= 360.0
+        self.delta = delta
+
+    def __call__(self, image):
+        if random.randint(2):
+            image[:, :, 0] += random.uniform(-self.delta, self.delta)
+            image[:, :, 0][image[:, :, 0] > 360.0] -= 360.0
+            image[:, :, 0][image[:, :, 0] < 0.0] += 360.0
+        return image
+
+
+class RandomBrightness(object):
+    def __init__(self, delta=32):
+        assert delta >= 0.0
+        assert delta <= 255.0
+        self.delta = delta
+
+    def __call__(self, image):
+        if random.randint(2):
+            delta = random.uniform(-self.delta, self.delta)
+            image += delta
+        return image
+
+
+class SwapChannels(object):
+    """Transforms a tensorized image by swapping the channels in the order
+     specified in the swap tuple.
+    Args:
+        swaps (int triple): final order of channels
+            eg: (2, 1, 0)
+    """
+
+    def __init__(self, swaps):
+        self.swaps = swaps
+
+    def __call__(self, image):
+        """
+        Args:
+            image (Tensor): image tensor to be transformed
+        Return:
+            a tensor with channels swapped according to swap
+        """
+        image = image[:, :, self.swaps]
+        return image
+
+
+class RandomLightingNoise(object):
+    def __init__(self):
+        self.perms = ((0, 1, 2), (0, 2, 1),
+                      (1, 0, 2), (1, 2, 0),
+                      (2, 0, 1), (2, 1, 0))
+
+    def __call__(self, image):
+        if random.randint(2):
+            swap = self.perms[random.randint(len(self.perms))]
+            shuffle = SwapChannels(swap)  # shuffle channels
+            image = shuffle(image)
+        return image
+
+
+class Compose(object):
+    """Composes several augmentations together.
+    Args:
+        transforms (List[Transform]): list of transforms to compose.
+    Example:
+        >>> augmentations.Compose([
+        >>>     transforms.CenterCrop(10),
+        >>>     transforms.ToTensor(),
+        >>> ])
+    """
+
+    def __init__(self, transforms):
+        self.transforms = transforms
+
+    def __call__(self, img):
+        for t in self.transforms:
+            img = t(img)
+        return img
+
+
+class PhotometricDistort(object):
+    def __init__(self):
+        self.pd = [
+            RandomContrast(),  # RGB
+            ConvertColor(current="RGB", transform='HSV'),  # HSV
+            RandomSaturation(),  # HSV
+            RandomHue(),  # HSV
+            ConvertColor(current='HSV', transform='RGB'),  # RGB
+            RandomContrast()  # RGB
+        ]
+        self.rand_brightness = RandomBrightness()
+        self.rand_light_noise = RandomLightingNoise()
+
+    def __call__(self, image):
+        im = image.copy()
+        im = self.rand_brightness(im)
+        if random.randint(2):
+            distort = Compose(self.pd[:-1])
+        else:
+            distort = Compose(self.pd[1:])
+        im = distort(im)
+        return self.rand_light_noise(im)
